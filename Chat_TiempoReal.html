@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LiveChat Pro</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0b1220;
+  --sidebar:#020617;
+  --chat:#0f172a;
+  --primary:#22c55e;
+  --accent:#38bdf8;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+}
+
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  height:100vh;
+}
+.msg{
+  animation:fadeIn .3s ease;
+}
+
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+.sidebar{
+  width:250px;
+  background:var(--sidebar);
+  padding:20px;
+}
+
+.user{
+  padding:10px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:10px;
+}
+
+.user:hover{
+  background:var(--chat);
+}
+
+.chat{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+
+.messages{
+  flex:1;
+  padding:20px;
+  overflow-y:auto;
+}
+
+.msg{
+  max-width:60%;
+  margin-bottom:10px;
+  padding:10px;
+  border-radius:10px;
+}
+
+.me{
+  background:var(--primary);
+  color:#000;
+  margin-left:auto;
+}
+
+.other{
+  background:var(--chat);
+}
+
+.input{
+  display:flex;
+  padding:15px;
+  border-top:1px solid #1e293b;
+}
+
+.input input{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:6px;
+}
+
+.input button{
+  margin-left:10px;
+  background:var(--accent);
+  border:none;
+  padding:10px 15px;
+  border-radius:6px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <h3>Chats</h3>
+  <div class="user">Juan</div>
+  <div class="user">María</div>
+  <div class="user">Equipo Dev</div>
+</div>
+
+<div class="chat">
+
+  <div class="messages" id="messages"></div>
+
+  <div class="input">
+    <input type="text" id="input" placeholder="Escribe un mensaje...">
+    <button onclick="sendMessage()">Enviar</button>
+  </div>
+
+</div>
+
+<script>
+
+const messages = document.getElementById('messages');
+
+const replies = [
+  "Interesante 👀",
+  "¿Puedes explicarlo mejor?",
+  "Estoy de acuerdo 👍",
+  "Eso suena bien 🚀",
+  "Lo reviso y te digo",
+  "Perfecto, avancemos",
+  "No estoy seguro 🤔"
+];
+
+function showTyping(){
+  const typing = document.createElement('div');
+  typing.className = 'msg other';
+  typing.id = 'typing';
+  typing.innerText = "Escribiendo...";
+  messages.appendChild(typing);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function fakeReply(){
+  showTyping();
+
+  setTimeout(()=>{
+    const typing = document.getElementById('typing');
+    if(typing) typing.remove();
+
+    const msg = document.createElement('div');
+    msg.className = 'msg other';
+
+    const random = replies[Math.floor(Math.random()*replies.length)];
+    msg.innerText = random;
+
+    messages.appendChild(msg);
+    messages.scrollTop = messages.scrollHeight;
+
+  }, 1200 + Math.random()*1500);
+}
+
+function sendMessage(){
+  const input = document.getElementById('input');
+  if(!input.value.trim()) return;
+
+  const msg = document.createElement('div');
+  msg.className = 'msg me';
+  msg.innerText = input.value;
+
+  messages.appendChild(msg);
+  messages.scrollTop = messages.scrollHeight;
+
+  input.value = "";
+
+  fakeReply();
+}
+</script>
+
+</body>
+</html>

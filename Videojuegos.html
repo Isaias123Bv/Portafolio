@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gamer Store | Steam Style</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#020617;
+  --card:#0f172a;
+  --primary:#38bdf8;
+  --accent:#22c55e;
+}
+
+body{
+  margin:0;
+  font-family:'Inter';
+  background:var(--bg);
+  color:#fff;
+  transition:.4s;
+}
+
+/* HEADER */
+header{
+  display:flex;
+  justify-content:space-between;
+  padding:20px;
+}
+
+/* NAV */
+nav button{
+  margin-right:10px;
+  padding:8px 15px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:20px;
+  padding:20px;
+}
+
+/* CARD */
+.card{
+  position:relative;
+  overflow:hidden;
+  border-radius:12px;
+  cursor:pointer;
+}
+
+/* IMAGE */
+.card img{
+  width:100%;
+  height:200px;
+  object-fit:cover;
+  transition:.4s;
+}
+
+/* VIDEO PREVIEW */
+.preview{
+  position:absolute;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:.4s;
+}
+
+/* HOVER EFFECT */
+.card:hover .preview{
+  opacity:1;
+}
+
+.card:hover img{
+  opacity:0;
+}
+
+/* INFO */
+.info{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  padding:15px;
+  background:linear-gradient(transparent, rgba(0,0,0,0.9));
+}
+
+/* BOTONES */
+button{
+  background:var(--primary);
+  border:none;
+  padding:10px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-top:5px;
+}
+
+/* VISTAS */
+.view{display:none;}
+.view.active{display:block;}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.95);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.modal.active{
+  display:flex;
+}
+
+.modal-content{
+  width:90%;
+  max-width:800px;
+  background:#0f172a;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.modal-content img{
+  width:100%;
+  height:300px;
+  object-fit:cover;
+}
+
+.modal-body{
+  padding:20px;
+}
+
+/* LISTAS */
+.item{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+
+/* BADGE */
+.badge{
+  background:var(--accent);
+  padding:3px 8px;
+  border-radius:6px;
+  color:#000;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>🎮 Gamer Store</h2>
+  <nav>
+    <button onclick="showView('shop')">Tienda</button>
+    <button onclick="showView('cart')">Carrito</button>
+    <button onclick="showView('wishlist')">Wishlist</button>
+    <button onclick="showView('orders')">Pedidos</button>
+  </nav>
+</header>
+
+<!-- TIENDA -->
+<div id="shop" class="view active">
+  <div class="grid" id="catalog"></div>
+</div>
+
+<!-- CARRITO -->
+<div id="cart" class="view">
+  <div class="card">
+    <h3>Carrito</h3>
+    <div id="cart-items"></div>
+    <h4 id="total"></h4>
+    <button onclick="checkout()">Comprar</button>
+  </div>
+</div>
+
+<!-- WISHLIST -->
+<div id="wishlist" class="view">
+  <div class="card">
+    <h3>Wishlist ❤️</h3>
+    <div id="wishlist-items"></div>
+  </div>
+</div>
+
+<!-- PEDIDOS -->
+<div id="orders" class="view">
+  <div class="card">
+    <h3>Historial de compras</h3>
+    <div id="orders-list"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <img id="modal-img">
+    <div class="modal-body">
+      <h2 id="modal-title"></h2>
+      <p id="modal-price"></p>
+      <button onclick="addToCart(selected)">Agregar al carrito</button>
+      <button onclick="addToWishlist(selected)">❤️ Wishlist</button>
+      <button onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const games = [
+  {
+    name:"Elden Ring",
+    price:1300,
+    img:"https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg",
+    video:"https://www.w3schools.com/html/mov_bbb.mp4"
+  },
+  {
+    name:"Grand Theft Auto V",
+    price:800,
+    img:"https://upload.wikimedia.org/wikipedia/en/a/a5/Grand_Theft_Auto_V.png",
+    video:"https://www.w3schools.com/html/movie.mp4"
+  },
+  {
+    name:"Cyberpunk 2077",
+    price:1200,
+    img:"https://upload.wikimedia.org/wikipedia/en/9/9f/Cyberpunk_2077_box_art.jpg",
+    video:"https://www.w3schools.com/html/mov_bbb.mp4"
+  },
+  {
+    name:"Red Dead Redemption 2",
+    price:1100,
+    img:"https://upload.wikimedia.org/wikipedia/en/4/44/Red_Dead_Redemption_II.jpg",
+    video:"https://www.w3schools.com/html/movie.mp4"
+  },
+  {
+    name:"The Witcher 3",
+    price:600,
+    img:"https://upload.wikimedia.org/wikipedia/en/0/0c/Witcher_3_cover_art.jpg",
+    video:"https://www.w3schools.com/html/mov_bbb.mp4"
+  },
+  {
+    name:"Hogwarts Legacy",
+    price:1400,
+    img:"https://upload.wikimedia.org/wikipedia/en/4/4a/Hogwarts_Legacy_cover.jpg",
+    video:"https://www.w3schools.com/html/movie.mp4"
+  },
+  {
+    name:"Call of Duty: Warzone",
+    price:0,
+    img:"https://upload.wikimedia.org/wikipedia/en/d/d8/Call_of_Duty_Warzone_cover.jpg",
+    video:"https://www.w3schools.com/html/mov_bbb.mp4"
+  },
+  {
+    name:"Fortnite",
+    price:0,
+    img:"https://upload.wikimedia.org/wikipedia/en/0/09/Fortnite_cover.jpg",
+    video:"https://www.w3schools.com/html/movie.mp4"
+  },
+  {
+    name:"Minecraft",
+    price:600,
+    img:"https://upload.wikimedia.org/wikipedia/en/5/51/Minecraft_cover.png",
+    video:"https://www.w3schools.com/html/mov_bbb.mp4"
+  },
+  {
+    name:"FIFA 24",
+    price:1100,
+    img:"https://upload.wikimedia.org/wikipedia/en/a/a1/EA_Sports_FC_24_cover.jpg",
+    video:"https://www.w3schools.com/html/movie.mp4"
+  }
+];
+
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+let orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+let selected = null;
+
+/* VISTAS */
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* CATÁLOGO */
+function renderCatalog(){
+  const catalog = document.getElementById('catalog');
+  catalog.innerHTML='';
+
+  games.forEach((g,i)=>{
+    catalog.innerHTML += `
+      <div class="card" onclick="openModal(${i})">
+        
+        <video class="preview" muted loop>
+          <source src="${g.video}" type="video/mp4">
+        </video>
+
+        <img src="${g.img}">
+
+        <div class="info">
+          <span class="badge">GAME</span>
+          <h3>${g.name}</h3>
+          <p>$${g.price}</p>
+        </div>
+
+      </div>
+    `;
+  });
+
+  // PLAY VIDEO EN HOVER
+  document.querySelectorAll('.card').forEach(card=>{
+    card.addEventListener('mouseenter',()=>{
+      const video = card.querySelector('video');
+      if(video) video.play();
+    });
+
+    card.addEventListener('mouseleave',()=>{
+      const video = card.querySelector('video');
+      if(video){
+        video.pause();
+        video.currentTime = 0;
+      }
+    });
+  });
+}
+
+/* MODAL */
+function openModal(i){
+  selected = i;
+
+  document.getElementById('modal-img').src = games[i].img;
+  document.getElementById('modal-title').innerText = games[i].name;
+  document.getElementById('modal-price').innerText = "$"+games[i].price;
+
+  document.getElementById('modal').classList.add('active');
+
+  // FONDO DINÁMICO
+  document.body.style.backgroundImage = `url(${games[i].img})`;
+  document.body.style.backgroundSize = 'cover';
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('active');
+  document.body.style.background = "#020617";
+}
+
+/* CARRITO */
+function addToCart(i){
+  cart.push(games[i]);
+  save();
+  renderCart();
+}
+
+function renderCart(){
+  const div = document.getElementById('cart-items');
+  let total = 0;
+
+  div.innerHTML='';
+
+  cart.forEach((c,i)=>{
+    total += c.price;
+
+    div.innerHTML += `
+      <div class="item">
+        ${c.name} - $${c.price}
+        <button onclick="removeCart(${i})">X</button>
+      </div>
+    `;
+  });
+
+  document.getElementById('total').innerText = "Total: $"+total;
+}
+
+function removeCart(i){
+  cart.splice(i,1);
+  save();
+  renderCart();
+}
+
+/* WISHLIST */
+function addToWishlist(i){
+  wishlist.push(games[i]);
+  save();
+  renderWishlist();
+}
+
+function renderWishlist(){
+  const div = document.getElementById('wishlist-items');
+  div.innerHTML='';
+
+  wishlist.forEach(w=>{
+    div.innerHTML += `<div class="item">${w.name}</div>`;
+  });
+}
+
+/* CHECKOUT */
+function checkout(){
+  if(cart.length === 0) return alert("Carrito vacío");
+
+  orders.push({
+    date: new Date().toLocaleString(),
+    items: [...cart]
+  });
+
+  cart = [];
+  save();
+  renderCart();
+  renderOrders();
+
+  alert("Compra realizada ✅");
+}
+
+/* PEDIDOS */
+function renderOrders(){
+  const div = document.getElementById('orders-list');
+  div.innerHTML='';
+
+  orders.forEach(o=>{
+    div.innerHTML += `
+      <div class="card">
+        <strong>${o.date}</strong>
+        ${o.items.map(i=>"<p>"+i.name+"</p>").join("")}
+      </div>
+    `;
+  });
+}
+
+/* SAVE */
+function save(){
+  localStorage.setItem('cart', JSON.stringify(cart));
+  localStorage.setItem('wishlist', JSON.stringify(wishlist));
+  localStorage.setItem('orders', JSON.stringify(orders));
+}
+
+/* INIT */
+renderCatalog();
+renderCart();
+renderWishlist();
+renderOrders();
+
+</script>
+
+</body>
+</html>
